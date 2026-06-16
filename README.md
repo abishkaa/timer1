@@ -1,4 +1,4 @@
-# Study Assistant
+`# Study Assistant
  
 A conversational AI assistant that helps students understand homework and study material. Instead of giving direct answers, it explains concepts in simple terms, offers hints, and guides the student toward solving the problem themselves.
  

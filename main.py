@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from service.oylan import send_message
  
 app = FastAPI()
  
@@ -15,8 +16,14 @@ def health():
     return {"status": "ok"}
  
 @app.post("/chat")
-def chat(req: ChatRequest):
-    # пока возвращаем эхо; настоящий Oylan подключим позже
-    return {"reply": f"You said: {req.message}"}
+async def chat(req: ChatRequest):
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    try:
+        reply = await send_message(req.message)
+        return {"reply": reply}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
