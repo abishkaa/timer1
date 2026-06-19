@@ -17,13 +17,31 @@ HEADERS = {
     'accept': 'application/json',
 }
  
-async def send_message(content: str) -> str:
-    url = f'{BASE_URL}/assistant/{ASSISTANT_ID}/interactions/'
-    data = {'content': content, 'stream': False}
- 
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(url, headers=HEADERS, data=data)
-        resp.raise_for_status()
-        result = resp.json()
-        return result['response']['content']
+import httpx
 
+# Ensure these variables are defined in your module or imported from config
+# BASE_URL = "..."
+# ASSISTANT_ID = "..."
+# HEADERS = {"Authorization": "Bearer ..."}
+
+async def send_message(content: str, history: list[dict] | None = None) -> str:
+    url = f'{BASE_URL}/assistant/{ASSISTANT_ID}/interactions/'
+    
+    # Form the context: existing history + new message
+    context = ''
+    if history:
+        for msg in history:
+            prefix = 'User' if msg['role'] == 'user' else 'Assistant'
+            context += f"{prefix}: {msg['content']}\n"
+    
+    full_content = f"{context}User: {content}" if context else content
+    
+    data = {'content': full_content, 'stream': False}
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.post(url, headers=HEADERS, json=data)
+        r.raise_for_status()
+        
+        # Accessing the response content
+        response_data = r.json()
+        return response_data['response']['content']
